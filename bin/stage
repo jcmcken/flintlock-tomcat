@@ -26,21 +26,25 @@ EOF
 cat << EOF > $APP_DIR/bin/start
 #!/bin/bash
 
+APP_DIR=\$(dirname \$0)/..
+
 set -a
 
-source \$(dirname \$0)/../conf/tomcat6.conf
+source \$APP_DIR/conf/tomcat6.conf
 
-nohup /usr/sbin/tomcat6 start 1>> $APP_DIR/logs/stdout.log 2>> $APP_DIR/logs/stderr.log < /dev/null &
+nohup /usr/sbin/tomcat6 start 1>> \$APP_DIR/logs/stdout.log 2>> \$APP_DIR/logs/stderr.log < /dev/null &
 EOF
 
 cat << EOF > $APP_DIR/bin/stop
 #!/bin/bash
 
+APP_DIR=\$(dirname \$0)/..
+
 set -a 
 
-source \$(dirname \$0)/../conf/tomcat6.conf
+source \$APP_DIR/conf/tomcat6.conf
 
-/usr/sbin/tomcat6 stop 1>> $APP_DIR/logs/stdout.log 2>> $APP_DIR/logs/stderr.log
+/usr/sbin/tomcat6 stop 1>> \$APP_DIR/logs/stdout.log 2>> \$APP_DIR/logs/stderr.log
 EOF
 
 chmod 755 $APP_DIR/bin/{start,stop}
