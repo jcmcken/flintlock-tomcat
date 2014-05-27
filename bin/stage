@@ -1,0 +1,46 @@
+#!/bin/bash -e
+
+APP_DIR=$1
+TOMCAT_DIR=/usr/share/tomcat6
+
+mkdir -p $APP_DIR/{bin,conf,logs,tmp,webapps,work,lib,run}
+
+ls -1 $TOMCAT_DIR/bin/* | xargs -I {} ln -sf {} $APP_DIR/bin
+ls -1 $TOMCAT_DIR/lib/* | xargs -I {} ln -sf {} $APP_DIR/lib
+
+cp -pr $TOMCAT_DIR/conf/* $APP_DIR/conf
+
+cat << EOF > $APP_DIR/conf/tomcat6.conf
+CATALINA_BASE="$APP_DIR"
+CATALINA_HOME="$APP_DIR"
+JASPER_HOME="$APP_DIR"
+CATALINA_TMPDIR="$APP_DIR/tmp"
+JAVA_OPTS="\${JAVA_OPTS} -Djavax.sql.DataSource.Factory=org.apache.commons.dbcp.BasicDataSourceFactory"
+TOMCAT_USER="tomcat"
+SECURITY_MANAGER="false"
+SHUTDOWN_WAIT="30"
+SHUTDOWN_VERBOSE=false
+CATALINA_PID="$APP_DIR/run/tomcat6.pid"
+EOF
+
+cat << EOF > $APP_DIR/bin/start
+#!/bin/bash
+
+set -a
+
+source \$(dirname \$0)/../conf/tomcat6.conf
+
+nohup /usr/sbin/tomcat6 start 1>> $APP_DIR/logs/stdout.log 2>> $APP_DIR/logs/stderr.log < /dev/null &
+EOF
+
+cat << EOF > $APP_DIR/bin/stop
+#!/bin/bash
+
+set -a 
+
+source \$(dirname \$0)/../conf/tomcat6.conf
+
+/usr/sbin/tomcat6 stop 1>> $APP_DIR/logs/stdout.log 2>> $APP_DIR/logs/stderr.log
+EOF
+
+chmod 755 $APP_DIR/bin/{start,stop}
